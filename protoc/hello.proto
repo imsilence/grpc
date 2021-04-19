@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package hello;
+
+option go_package = "bp/hello";
+
+message HelloRequest {
+    string name = 1;
+}
+
+message HelloResponse {
+    string reply = 1;
+}
+
+service HelloService {
+    rpc Say(HelloRequest) returns (HelloResponse);
+    rpc List(HelloRequest) returns (stream HelloResponse);
+    rpc Multipart(stream HelloRequest) returns (HelloResponse);
+    rpc Channel(stream HelloRequest) returns (stream HelloResponse);
+}
+
+// 生成Go代码
+// protoc: https://github.com/protocolbuffers/protobuf/releases
+// protoc-gen-go: go get google.golang.org/protobuf/cmd/protoc-gen-go
+// protoc-gen-go-grpc: go get google.golang.org/grpc/cmd/protoc-gen-go-grpc
+// protoc --go_out=. --go-grpc_out=. protoc/hello.proto
