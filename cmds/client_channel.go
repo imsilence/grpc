@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/encoding/gzip"
+	"google.golang.org/grpc/metadata"
 )
 
 var channelClientCmd = &cobra.Command{
@@ -29,11 +30,14 @@ var channelClientCmd = &cobra.Command{
 		if useGzip {
 			opts = append(opts, grpc.UseCompressor(gzip.Name))
 		}
+		md := metadata.Pairs("type", "channel")
+		ctx := metadata.NewOutgoingContext(context.Background(), md)
 
-		stream, err := client.Channel(context.TODO(), opts...)
+		stream, err := client.Channel(ctx, opts...)
 		if err != nil {
 			return err
 		}
+		log.Print(stream.Header())
 		for i := 0; i < rand.Intn(20); i++ {
 			err := stream.Send(&hello.HelloRequest{Name: fmt.Sprintf("%d.%s", i, time.Now().Format("2006-01-02 15:04:05"))})
 			if err != nil {
@@ -55,6 +59,7 @@ var channelClientCmd = &cobra.Command{
 			}
 			log.Print(resp.Reply)
 		}
+		log.Print(stream.Trailer())
 
 		return nil
 	},

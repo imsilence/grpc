@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/encoding/gzip"
+	"google.golang.org/grpc/metadata"
 )
 
 var multipartClientCmd = &cobra.Command{
@@ -29,10 +30,16 @@ var multipartClientCmd = &cobra.Command{
 			opts = append(opts, grpc.UseCompressor(gzip.Name))
 		}
 
-		stream, err := client.Multipart(context.TODO(), opts...)
+		md := metadata.Pairs("type", "multipart")
+		ctx := metadata.NewOutgoingContext(context.Background(), md)
+
+		stream, err := client.Multipart(ctx, opts...)
 		if err != nil {
 			return err
 		}
+
+		log.Print(stream.Header())
+
 		for i := 0; i < rand.Intn(20); i++ {
 			err := stream.Send(&hello.HelloRequest{Name: fmt.Sprintf("%d.%s", i, time.Now().Format("2006-01-02 15:04:05"))})
 			if err != nil {
@@ -45,6 +52,8 @@ var multipartClientCmd = &cobra.Command{
 		}
 
 		log.Print(resp.Reply)
+
+		log.Print(stream.Trailer())
 		return nil
 	},
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/encoding/gzip"
+	"google.golang.org/grpc/metadata"
 )
 
 var listClientCmd = &cobra.Command{
@@ -27,11 +28,14 @@ var listClientCmd = &cobra.Command{
 		if useGzip {
 			opts = append(opts, grpc.UseCompressor(gzip.Name))
 		}
+		md := metadata.Pairs("type", "list")
+		ctx := metadata.NewOutgoingContext(context.Background(), md)
 
-		stream, err := client.List(context.TODO(), &hello.HelloRequest{Name: time.Now().Format("2006-01-02 15:04:05")}, opts...)
+		stream, err := client.List(ctx, &hello.HelloRequest{Name: time.Now().Format("2006-01-02 15:04:05")}, opts...)
 		if err != nil {
 			return err
 		}
+		log.Print(stream.Header())
 		for {
 			resp, err := stream.Recv()
 			if err != nil {
@@ -42,6 +46,7 @@ var listClientCmd = &cobra.Command{
 			}
 			log.Print(resp.Reply)
 		}
+		log.Print(stream.Trailer())
 		return nil
 	},
 }

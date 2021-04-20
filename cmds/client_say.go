@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/encoding/gzip"
+	"google.golang.org/grpc/metadata"
 )
 
 var sayClientCmd = &cobra.Command{
@@ -27,11 +28,24 @@ var sayClientCmd = &cobra.Command{
 			opts = append(opts, grpc.UseCompressor(gzip.Name))
 		}
 
-		response, err := client.Say(context.TODO(), &hello.HelloRequest{Name: time.Now().Format("2006-01-02 15:04:05")}, opts...)
-		if err != nil {
-			return err
+		md := metadata.Pairs("type", "say")
+		ctx := metadata.NewOutgoingContext(context.Background(), md)
+
+		var header, trialer metadata.MD
+
+		opts = append(opts, grpc.Header(&header), grpc.Trailer(&trialer))
+
+		for range time.Tick(time.Second) {
+			response, err := client.Say(ctx, &hello.HelloRequest{Name: time.Now().Format("2006-01-02 15:04:05")}, opts...)
+			if err != nil {
+				return err
+			}
+			log.Print(response.Reply)
+			log.Print(header)
+			log.Print(trialer)
+
 		}
-		log.Print(response.Reply)
+
 		return nil
 	},
 }
