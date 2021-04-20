@@ -10,6 +10,7 @@ import (
 
 var clientCertFile string
 var accessToken string
+var useGzip bool
 
 var clientCmd = &cobra.Command{
 	Use:   "client",
@@ -36,6 +37,7 @@ func dial(addr, certFile string) (*grpc.ClientConn, error) {
 
 func init() {
 	rootCmd.AddCommand(clientCmd)
-	clientCmd.Flags().StringVarP(&clientCertFile, "cert", "c", "etc/tls/ca/ca.pem", "cert file")
-	clientCmd.Flags().StringVarP(&accessToken, "token", "t", "abc123!@#", "access token")
+	clientCmd.PersistentFlags().StringVarP(&clientCertFile, "cert", "c", "etc/tls/ca/ca.pem", "cert file")
+	clientCmd.PersistentFlags().StringVarP(&accessToken, "token", "t", "abc123!@#", "access token")
+	clientCmd.PersistentFlags().BoolVarP(&useGzip, "gzip", "g", false, "gzip compress")
 }

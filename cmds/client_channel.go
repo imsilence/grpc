@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/encoding/gzip"
 )
 
 var channelClientCmd = &cobra.Command{
@@ -22,7 +24,13 @@ var channelClientCmd = &cobra.Command{
 		}
 		defer conn.Close()
 		client := hello.NewHelloServiceClient(conn)
-		stream, err := client.Channel(context.TODO())
+
+		opts := make([]grpc.CallOption, 0)
+		if useGzip {
+			opts = append(opts, grpc.UseCompressor(gzip.Name))
+		}
+
+		stream, err := client.Channel(context.TODO(), opts...)
 		if err != nil {
 			return err
 		}

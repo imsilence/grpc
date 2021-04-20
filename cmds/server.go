@@ -11,6 +11,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
+
+	_ "google.golang.org/grpc/encoding/gzip"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
@@ -29,7 +31,7 @@ var serverCmd = &cobra.Command{
 		}
 
 		opts := make([]grpc.ServerOption, 0)
-		if serverCertFile != "" || serverKeyFile != "" {
+		if serverCertFile != "" && serverKeyFile != "" {
 			creds, err := credentials.NewServerTLSFromFile(serverCertFile, serverKeyFile)
 			if err != nil {
 				return err
@@ -66,6 +68,7 @@ var serverCmd = &cobra.Command{
 			}))
 
 		}
+
 		server := grpc.NewServer(opts...)
 		server.RegisterService(&hello.HelloService_ServiceDesc, &services.HelloService{})
 		return server.Serve(listener)
